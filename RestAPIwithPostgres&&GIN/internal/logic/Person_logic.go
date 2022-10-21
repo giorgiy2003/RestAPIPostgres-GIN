@@ -1,6 +1,8 @@
 package Logic
 
 import (
+	"errors"
+	"fmt"
 	Model "app/internal/model"
 	Repository "app/internal/repository"
 	"strconv"
@@ -15,8 +17,8 @@ func Create(p Model.Person) error {
 
 func ReadOne(id string) ([]Model.Person, error) {
 	person_id, err := strconv.Atoi(id)
-	if err != nil{
-		return nil,err
+	if err != nil {
+		return nil, errors.New("Error: неверно введён параметр id")
 	}
 	row, err := Repository.Connection.Query(`SELECT * FROM "person" WHERE "person_id" = $1`, person_id)
 	if err != nil {
@@ -35,7 +37,7 @@ func ReadOne(id string) ([]Model.Person, error) {
 }
 
 func Read() ([]Model.Person, error) {
-	row, err := Repository.Connection.Query(`SELECT * FROM "person"  ORDER BY "person_id"`)
+	row, err := Repository.Connection.Query(`SELECT * FROM "person" ORDER BY "person_id"`)
 	if err != nil {
 		return nil, err
 	}
@@ -52,23 +54,32 @@ func Read() ([]Model.Person, error) {
 }
 
 func Update(p Model.Person, id string) error {
-	person_id, err := strconv.Atoi(id)
-	if err != nil{
+	if err := dataExist(id); err != nil {
 		return err
 	}
-	if _, err := Repository.Connection.Exec(`UPDATE "person" SET "person_email" = $1,"person_phone" = $2,"person_firstName" = $3,"person_lastName" = $4  WHERE "person_id" = $5`, p.Email, p.Phone, p.FirstName, p.LastName, person_id); err != nil {
+	if _, err := Repository.Connection.Exec(`UPDATE "person" SET "person_email" = $1,"person_phone" = $2,"person_firstName" = $3,"person_lastName" = $4  WHERE "person_id" = $5`, p.Email, p.Phone, p.FirstName, p.LastName, id); err != nil {
 		return err
 	}
 	return nil
 }
 
 func Delete(id string) error {
-	person_id, err := strconv.Atoi(id)
-	if err != nil{
+	if err := dataExist(id); err != nil {
 		return err
 	}
-	if _, err := Repository.Connection.Exec(`DELETE FROM "person" WHERE "person_id" = $1`, person_id); err != nil {
+	if _, err := Repository.Connection.Exec(`DELETE FROM "person" WHERE "person_id" = $1`, id); err != nil {
 		return err
+	}
+	return nil
+}
+
+func dataExist(id string) error {
+	persons, err := ReadOne(id)
+	if err != nil {
+		return err
+	}
+	if len(persons) == 0 {
+		return fmt.Errorf("Error: записи с id = %s не существует", id)
 	}
 	return nil
 }

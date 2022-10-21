@@ -6,7 +6,7 @@ curl -X POST http://localhost:8080/person -d 'email=Joe@mail.ru' -d 'phone=76677
 curl http://localhost:8080/person 
 
 ### Вывести пользователя по id
-curl  http://localhost:8080/person/1
+curl  http://localhost:8080/person/8
 
 ### Удалить пользователя по id
 curl -X DELETE http://localhost:8080/person/4
